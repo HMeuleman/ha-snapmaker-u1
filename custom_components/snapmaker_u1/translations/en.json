@@ -98,7 +98,8 @@
       "home_x": { "name": "Home X" },
       "home_y": { "name": "Home Y" },
       "home_z": { "name": "Home Z" },
-      "restart_klipper": { "name": "Restart Klipper" }
+      "restart_klipper": { "name": "Restart Klipper" },
+      "wake_camera": { "name": "Wake Camera" }
     },
     "camera": {
       "webcam": { "name": "Webcam" }

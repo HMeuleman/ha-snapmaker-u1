@@ -659,6 +659,22 @@ class SnapmakerClient:
         # This may still work on stock Moonraker through command forwarding.
         await self.execute_gcode(f"M355 S{'1' if on else '0'}")
 
+    async def wake_camera(self) -> None:
+        """Wake up the camera by sending camera.start_monitor with interval 0."""
+        payload = {
+            "jsonrpc": "2.0",
+            "id": self._next_id(),
+            "method": "camera.start_monitor",
+            "params": {"domain": "lan", "interval": 0},
+        }
+
+        if self._ws and not self._ws.closed:
+            await self._ws.send_str(json.dumps(payload))
+            return
+
+        # If WS not available, log a warning as this command requires WS
+        _LOGGER.warning("Cannot wake camera – WebSocket not connected")
+
     async def set_active_tool(self, tool_index: int) -> None:
         """Switch the active extruder tool (T0–T3)."""
         if not (0 <= tool_index <= 3):

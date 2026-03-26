@@ -90,6 +90,13 @@ BUTTON_DESCRIPTIONS: list[SnapmakerButtonEntityDescription] = [
         icon="mdi:restart",
         press_fn=lambda client: client.restart_klipper(),
     ),
+    SnapmakerButtonEntityDescription(
+        key="wake_camera",
+        translation_key="wake_camera",
+        icon="mdi:camera",
+        press_fn=lambda client: client.wake_camera(),
+        available_fn=lambda coordinator: coordinator.data.is_ready,
+    ),
 ]
 
 
