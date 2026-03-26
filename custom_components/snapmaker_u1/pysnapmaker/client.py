@@ -627,8 +627,7 @@ class SnapmakerClient:
         """Set the nozzle target temperature (index 0–3 for T0–T3)."""
         if not (0 <= index <= 3):
             raise ValueError(f"Extruder index must be 0–3, got {index}")
-        # Use an indexed M104 command to avoid switching tools unnecessarily.
-        await self.execute_gcode(f"M104 T{index} S{temp}")
+        await self.execute_gcode(f"T{index}\nM104 S{temp}")
 
     async def set_fan_speed(self, speed_pct: int) -> None:
         """Set part-cooling fan speed (0–100 %)."""
