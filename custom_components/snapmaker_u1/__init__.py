@@ -30,6 +30,7 @@ SERVICE_EXECUTE_GCODE = "execute_gcode"
 SERVICE_SET_BED_TEMPERATURE = "set_bed_temperature"
 SERVICE_SET_NOZZLE_TEMPERATURE = "set_nozzle_temperature"
 SERVICE_START_PRINT = "start_print"
+SERVICE_SET_CAVITY_LIGHT = "set_cavity_light"
 
 # Service schemas
 EXECUTE_GCODE_SCHEMA = vol.Schema(
@@ -61,6 +62,13 @@ START_PRINT_SCHEMA = vol.Schema(
     {
         vol.Required("config_entry_id"): cv.string,
         vol.Required("filename"): cv.string,
+    }
+)
+
+SET_CAVITY_LIGHT_SCHEMA = vol.Schema(
+    {
+        vol.Required("config_entry_id"): cv.string,
+        vol.Required("on"): vol.Boolean(),
     }
 )
 
@@ -115,6 +123,16 @@ def _register_services(hass: HomeAssistant) -> None:
         DOMAIN, SERVICE_START_PRINT, handle_start_print, START_PRINT_SCHEMA
     )
 
+    async def handle_set_cavity_light(call: ServiceCall) -> None:
+        await _get_client(hass, call).set_cavity_led(call.data["on"])
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_CAVITY_LIGHT,
+        handle_set_cavity_light,
+        SET_CAVITY_LIGHT_SCHEMA,
+    )
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Snapmaker U1 from a config entry."""
@@ -161,6 +179,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             SERVICE_SET_BED_TEMPERATURE,
             SERVICE_SET_NOZZLE_TEMPERATURE,
             SERVICE_START_PRINT,
+            SERVICE_SET_CAVITY_LIGHT,
         ):
             hass.services.async_remove(DOMAIN, svc)
 

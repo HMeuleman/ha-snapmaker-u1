@@ -90,3 +90,21 @@ start_print:
       example: "benchy.gcode"
       selector:
         text:
+
+set_cavity_light:
+  name: Set cavity light
+  description: Turn the Snapmaker U1 cavity light on/off via printer.control.led.
+  fields:
+    config_entry_id:
+      name: Config Entry
+      description: The config entry ID for the printer.
+      required: true
+      selector:
+        config_entry:
+          integration: snapmaker_u1
+    on:
+      name: On
+      description: Set to true to turn on, false to turn off.
+      required: true
+      selector:
+        boolean:

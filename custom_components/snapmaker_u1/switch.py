@@ -26,7 +26,10 @@ async def async_setup_entry(
 ) -> None:
     """Set up Snapmaker U1 switch entities from a config entry."""
     coordinator: SnapmakerDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([WorkLightSwitch(coordinator)])
+    async_add_entities([
+        WorkLightSwitch(coordinator),
+        CavityLightSwitch(coordinator),
+    ])
 
 
 class WorkLightSwitch(SnapmakerBaseEntity, SwitchEntity):
@@ -77,3 +80,49 @@ class WorkLightSwitch(SnapmakerBaseEntity, SwitchEntity):
             self.async_write_ha_state()
         except Exception as exc:
             _LOGGER.error("Error toggling work light: %s", exc)
+
+
+class CavityLightSwitch(SnapmakerBaseEntity, SwitchEntity):
+    """Switch to toggle the Snapmaker U1 cavity light via printer.control.led."""
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "cavity_light"
+    _attr_icon = "mdi:lightbulb-group"
+
+    def __init__(self, coordinator: SnapmakerDataUpdateCoordinator) -> None:
+        super().__init__(coordinator)
+        host = coordinator.entry.data["host"]
+        self._attr_unique_id = f"{host}_cavity_light"
+        self._optimistic_state: bool | None = None
+
+    @property
+    def is_on(self) -> bool:
+        if self._optimistic_state is not None:
+            return self._optimistic_state
+        if self.coordinator.data:
+            return self.coordinator.data.cavity_light_on
+        return False
+
+    @property
+    def available(self) -> bool:
+        return bool(self.coordinator.data and self.coordinator.data.is_ready)
+
+    async def async_turn_on(self, **kwargs) -> None:
+        await self._set_light(True)
+
+    async def async_turn_off(self, **kwargs) -> None:
+        await self._set_light(False)
+
+    async def _set_light(self, on: bool) -> None:
+        client = self.coordinator.client
+        if client is None:
+            _LOGGER.warning("Cannot toggle cavity light – client not available")
+            return
+        try:
+            await client.set_cavity_led(on)
+            self._optimistic_state = on
+            if self.coordinator.data:
+                self.coordinator.data.cavity_light_on = on
+            self.async_write_ha_state()
+        except Exception as exc:
+            _LOGGER.error("Error toggling cavity light: %s", exc)

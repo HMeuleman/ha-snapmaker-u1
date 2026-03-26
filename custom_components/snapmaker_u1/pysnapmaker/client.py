@@ -176,6 +176,9 @@ class SnapmakerClient:
             return True
         except Exception as exc:
             _LOGGER.error("Failed to initialise Snapmaker U1 client: %s", exc)
+            # Clean up the session if we opened it ourselves
+            if self._own_session and self._session and not self._session.closed:
+                await self._session.close()
             return False
 
     async def async_start(self) -> None:
@@ -624,7 +627,8 @@ class SnapmakerClient:
         """Set the nozzle target temperature (index 0–3 for T0–T3)."""
         if not (0 <= index <= 3):
             raise ValueError(f"Extruder index must be 0–3, got {index}")
-        await self.execute_gcode(f"T{index}\nM104 S{temp}")
+        # Use an indexed M104 command to avoid switching tools unnecessarily.
+        await self.execute_gcode(f"M104 T{index} S{temp}")
 
     async def set_fan_speed(self, speed_pct: int) -> None:
         """Set part-cooling fan speed (0–100 %)."""
@@ -641,6 +645,23 @@ class SnapmakerClient:
 
     async def set_work_light(self, on: bool) -> None:
         """Toggle the work/chamber light via M355."""
+        await self.execute_gcode(f"M355 S{'1' if on else '0'}")
+
+    async def set_cavity_led(self, on: bool) -> None:
+        """Toggle the U1 cavity LED via printer.control.led JSON-RPC."""
+        payload = {
+            "jsonrpc": "2.0",
+            "id": self._next_id(),
+            "method": "printer.control.led",
+            "params": {"name": "cavity_led", "white": 1 if on else 0},
+        }
+
+        if self._ws and not self._ws.closed:
+            await self._ws.send_str(json.dumps(payload))
+            return
+
+        # Fallback: send command through HTTP gcode endpoint as fallback if WS is unavailable.
+        # This may still work on stock Moonraker through command forwarding.
         await self.execute_gcode(f"M355 S{'1' if on else '0'}")
 
     async def set_active_tool(self, tool_index: int) -> None:
