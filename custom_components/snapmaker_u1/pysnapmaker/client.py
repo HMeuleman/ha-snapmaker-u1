@@ -642,10 +642,6 @@ class SnapmakerClient:
         """Set extrusion flow-rate override via M221 (50–150 %)."""
         await self.execute_gcode(f"M221 S{flow_pct}")
 
-    async def set_work_light(self, on: bool) -> None:
-        """Toggle the work/chamber light via M355."""
-        await self.execute_gcode(f"M355 S{'1' if on else '0'}")
-
     async def set_cavity_led(self, on: bool) -> None:
         """Toggle the U1 cavity LED via printer.control.led JSON-RPC."""
         payload = {

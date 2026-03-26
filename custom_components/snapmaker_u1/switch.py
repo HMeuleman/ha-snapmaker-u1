@@ -1,7 +1,7 @@
 """Switch platform for the Snapmaker U1 integration.
 
 Provides:
-  - WorkLightSwitch – toggle the printer's work/chamber light (M355 S1/S0)
+  - CavityLightSwitch – toggle the printer's cavity light via printer.control.led
 """
 from __future__ import annotations
 
@@ -26,10 +26,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up Snapmaker U1 switch entities from a config entry."""
     coordinator: SnapmakerDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([
-        WorkLightSwitch(coordinator),
-        CavityLightSwitch(coordinator),
-    ])
+    async_add_entities([CavityLightSwitch(coordinator)])
 
 
 class WorkLightSwitch(SnapmakerBaseEntity, SwitchEntity):
@@ -86,7 +83,7 @@ class CavityLightSwitch(SnapmakerBaseEntity, SwitchEntity):
     """Switch to toggle the Snapmaker U1 cavity light via printer.control.led."""
 
     _attr_has_entity_name = True
-    _attr_translation_key = "cavity_light"
+    _attr_translation_key = "light"
     _attr_icon = "mdi:lightbulb-group"
 
     def __init__(self, coordinator: SnapmakerDataUpdateCoordinator) -> None:

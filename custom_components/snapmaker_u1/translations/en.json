@@ -115,7 +115,7 @@
       "active_tool": { "name": "Active Tool" }
     },
     "switch": {
-      "work_light": { "name": "Work Light" }
+      "light": { "name": "Light" }
     }
   },
   "device_automation": {

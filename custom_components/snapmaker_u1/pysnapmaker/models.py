@@ -130,9 +130,6 @@ class SnapmakerPrinterData:
     printer_name: str = "Snapmaker U1"
     firmware_version: str = ""
 
-    # Work-light optimistic state
-    work_light_on: bool = False
-
     # Cavity light optimistic state (controlled via printer.control.led)
     cavity_light_on: bool = False
 
