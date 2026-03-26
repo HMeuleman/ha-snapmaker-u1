@@ -18,8 +18,8 @@ _LOGGER = logging.getLogger(__name__)
 
 CAMERA_CONNECT_TIMEOUT = 5
 CAMERA_READ_TIMEOUT = 10
-# Refresh the still image every 2 seconds when the camera card is open
-CAMERA_FRAME_INTERVAL = 2.0
+# Refresh the still image every 1 seconds when the camera card is open
+CAMERA_FRAME_INTERVAL = 1.0
 
 
 async def async_setup_entry(
