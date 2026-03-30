@@ -448,6 +448,8 @@ class SnapmakerClient:
                 self._data.toolhead.max_velocity = th["max_velocity"]
             if "max_accel" in th:
                 self._data.toolhead.max_accel = th["max_accel"]
+            if "extruder" in th:
+                self._data.toolhead.active_extruder = th["extruder"]
             changed = True
 
         if "gcode_move" in status:

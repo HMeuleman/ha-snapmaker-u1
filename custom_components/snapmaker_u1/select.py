@@ -58,9 +58,12 @@ class PrintFileSelect(SnapmakerBaseEntity, SelectEntity):
 
     @property
     def current_option(self) -> str | None:
-        """Return the currently printing filename, or None."""
-        if self.coordinator.data:
-            return self.coordinator.data.print_stats.filename or None
+        """Return the currently printing filename if it is in the options list."""
+        if not self.coordinator.data:
+            return None
+        fname = self.coordinator.data.print_stats.filename
+        if fname and fname in self.options:
+            return fname
         return None
 
     @property
@@ -109,6 +112,19 @@ class ActiveToolSelect(SnapmakerBaseEntity, SelectEntity):
 
     @property
     def current_option(self) -> str:
+        """Return active tool from printer data, falling back to optimistic state."""
+        if self.coordinator.data:
+            extruder = self.coordinator.data.toolhead.active_extruder
+            # Moonraker names: "extruder" -> T0, "extruder1" -> T1, etc.
+            if extruder == "extruder":
+                return "T0"
+            try:
+                idx = int(extruder.replace("extruder", ""))
+                tool = f"T{idx}"
+                if tool in self._options:
+                    return tool
+            except ValueError:
+                pass
         return self._current_tool
 
     @property

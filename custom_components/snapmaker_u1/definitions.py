@@ -109,6 +109,19 @@ PRINTER_SENSORS: list[SnapmakerSensorEntityDescription] = [
         or self.coordinator.data.is_paused,
     ),
     SnapmakerSensorEntityDescription(
+        key="total_duration",
+        translation_key="total_duration",
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:timer-outline",
+        value_fn=lambda self: int(
+            self.coordinator.data.print_stats.total_duration
+        ),
+        available_fn=lambda self: self.coordinator.data.is_printing
+        or self.coordinator.data.is_paused,
+    ),
+    SnapmakerSensorEntityDescription(
         key="time_remaining",
         translation_key="time_remaining",
         device_class=SensorDeviceClass.DURATION,
@@ -225,6 +238,20 @@ PRINTER_SENSORS: list[SnapmakerSensorEntityDescription] = [
         value_fn=lambda self: self.coordinator.data.flow_rate_pct,
     ),
 ]
+
+
+# ---------------------------------------------------------------------------
+# Chamber / extra temperature sensor template (instantiated per discovered sensor)
+# ---------------------------------------------------------------------------
+
+CHAMBER_SENSOR_TEMPLATE = SnapmakerSensorEntityDescription(
+    key="chamber_temperature",
+    translation_key="chamber_temperature",
+    device_class=SensorDeviceClass.TEMPERATURE,
+    native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    state_class=SensorStateClass.MEASUREMENT,
+    icon="mdi:thermometer",
+)
 
 
 # ---------------------------------------------------------------------------

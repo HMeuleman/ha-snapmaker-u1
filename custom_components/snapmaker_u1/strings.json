@@ -61,6 +61,7 @@
       "current_layer": { "name": "Current Layer" },
       "total_layers": { "name": "Total Layers" },
       "print_duration": { "name": "Print Duration" },
+      "total_duration": { "name": "Total Duration" },
       "time_remaining": { "name": "Time Remaining" },
       "print_eta": { "name": "Print ETA" },
       "filament_used": { "name": "Filament Used" },
@@ -81,7 +82,8 @@
       "nozzle_temperature": { "name": "Nozzle Temperature" },
       "nozzle_target": { "name": "Nozzle Target Temperature" },
       "speed_factor": { "name": "Print Speed" },
-      "flow_rate": { "name": "Flow Rate" }
+      "flow_rate": { "name": "Flow Rate" },
+      "chamber_temperature": { "name": "Temperature" }
     },
     "binary_sensor": {
       "printer_ready": { "name": "Printer Ready" },

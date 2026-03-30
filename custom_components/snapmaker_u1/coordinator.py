@@ -137,7 +137,7 @@ class SnapmakerDataUpdateCoordinator(DataUpdateCoordinator[SnapmakerPrinterData]
     # ------------------------------------------------------------------
 
     @property
-    def client(self) -> SnapmakerClient:
+    def client(self) -> SnapmakerClient | None:
         return self._client
 
     @property
