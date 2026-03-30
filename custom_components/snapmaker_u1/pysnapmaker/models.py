@@ -57,6 +57,7 @@ class Toolhead:
     homed_axes: str = ""
     max_velocity: float = 0.0
     max_accel: float = 0.0
+    active_extruder: str = "extruder"
 
 
 @dataclass

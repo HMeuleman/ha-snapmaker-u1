@@ -1,7 +1,6 @@
 """Sensor platform for the Snapmaker U1 integration."""
 from __future__ import annotations
 
-import copy
 import logging
 from typing import Any
 
@@ -15,6 +14,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN, MANUFACTURER, MODEL
 from .coordinator import SnapmakerDataUpdateCoordinator
 from .definitions import (
+    CHAMBER_SENSOR_TEMPLATE,
     EXTRUDER_SENSORS,
     PRINTER_SENSORS,
     SnapmakerSensorEntityDescription,
@@ -48,8 +48,6 @@ async def async_setup_entry(
         label = f"T{i}"  # T0, T1, T2, T3
 
         for desc in EXTRUDER_SENSORS:
-            # Deep-copy so each extruder gets its own description instance
-            extruder_desc = copy.copy(desc)
             extruder_desc = SnapmakerSensorEntityDescription(
                 key=f"{extruder_key}_{desc.key}",
                 translation_key=desc.translation_key,
@@ -66,7 +64,36 @@ async def async_setup_entry(
                 SnapmakerExtruderSensor(coordinator, extruder_desc, extruder_key, label)
             )
 
+    # Chamber / extra temperature sensors (e.g. chamber thermistor, MCU temp)
+    temp_keys = coordinator.client.temp_sensor_keys if coordinator.client else []
+    for sensor_key in temp_keys:
+        # "temperature_sensor chamber" -> label "Chamber"
+        label = (
+            sensor_key.split(" ", 1)[1].replace("_", " ").title()
+            if " " in sensor_key
+            else sensor_key
+        )
+        desc = SnapmakerSensorEntityDescription(
+            key=f"chamber_{sensor_key.replace(' ', '_')}",
+            translation_key=CHAMBER_SENSOR_TEMPLATE.translation_key,
+            device_class=CHAMBER_SENSOR_TEMPLATE.device_class,
+            native_unit_of_measurement=CHAMBER_SENSOR_TEMPLATE.native_unit_of_measurement,
+            state_class=CHAMBER_SENSOR_TEMPLATE.state_class,
+            icon=CHAMBER_SENSOR_TEMPLATE.icon,
+            value_fn=_make_chamber_value_fn(sensor_key),
+        )
+        entities.append(SnapmakerChamberSensor(coordinator, desc, sensor_key, label))
+
     async_add_entities(entities)
+
+
+def _make_chamber_value_fn(sensor_key: str):
+    """Return a value_fn that reads the correct chamber sensor temperature."""
+
+    def value_fn(self: SnapmakerChamberSensor) -> float | None:
+        return self.coordinator.data.chamber_sensors.get(sensor_key)
+
+    return value_fn
 
 
 def _make_extruder_value_fn(extruder_key: str, field: str):
@@ -184,3 +211,19 @@ class SnapmakerExtruderSensor(SnapmakerSensor):
         self._attr_unique_id = f"{host}_{extruder_key}_{description.key}"
         # Override name to include T0/T1/… prefix
         self._attr_name = f"{label} {description.translation_key.replace('_', ' ').title()}"
+
+
+class SnapmakerChamberSensor(SnapmakerSensor):
+    """Sensor for a dynamically discovered temperature sensor (e.g. chamber, MCU)."""
+
+    def __init__(
+        self,
+        coordinator: SnapmakerDataUpdateCoordinator,
+        description: SnapmakerSensorEntityDescription,
+        sensor_key: str,
+        label: str,
+    ) -> None:
+        super().__init__(coordinator, description)
+        host = coordinator.entry.data["host"]
+        self._attr_unique_id = f"{host}_chamber_{sensor_key.replace(' ', '_')}"
+        self._attr_name = label
