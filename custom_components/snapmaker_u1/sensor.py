@@ -161,8 +161,8 @@ class SnapmakerSensor(SnapmakerBaseEntity, SensorEntity):
     entity_description: SnapmakerSensorEntityDescription
 
     _TEMPERATURE_SMOOTHING_THRESHOLD = 30.0
-    _TEMPERATURE_HYSTERESIS = 0.8
-    _TEMPERATURE_SMOOTHING_ALPHA = 0.15
+    _TEMPERATURE_HYSTERESIS = 1.0
+    _TEMPERATURE_SMOOTHING_ALPHA = 0.1
 
     def __init__(
         self,
