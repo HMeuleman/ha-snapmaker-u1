@@ -160,10 +160,6 @@ class SnapmakerSensor(SnapmakerBaseEntity, SensorEntity):
 
     entity_description: SnapmakerSensorEntityDescription
 
-    _TEMPERATURE_SMOOTHING_THRESHOLD = 30.0
-    _TEMPERATURE_HYSTERESIS = 1.6
-    _TEMPERATURE_SMOOTHING_ALPHA = 0.1
-
     def __init__(
         self,
         coordinator: SnapmakerDataUpdateCoordinator,
@@ -173,22 +169,13 @@ class SnapmakerSensor(SnapmakerBaseEntity, SensorEntity):
         self.entity_description = description
         host = coordinator.entry.data["host"]
         self._attr_unique_id = f"{host}_{description.key}"
-        self._filtered_value: float | None = None
 
     @property
     def native_value(self):
         if self.entity_description.value_fn is None:
             return None
         try:
-            raw_value = self.entity_description.value_fn(self)
-            if raw_value is None:
-                return None
-
-            if self._should_smooth_temperature(raw_value):
-                return self._smooth_temperature(raw_value)
-
-            self._filtered_value = raw_value
-            return raw_value
+            return self.entity_description.value_fn(self)
         except Exception:
             return None
 
@@ -205,25 +192,6 @@ class SnapmakerSensor(SnapmakerBaseEntity, SensorEntity):
             return self.entity_description.extra_attributes_fn(self)
         except Exception:
             return {}
-
-    def _should_smooth_temperature(self, raw_value: float) -> bool:
-        key = self.entity_description.key
-        if raw_value >= self._TEMPERATURE_SMOOTHING_THRESHOLD:
-            return False
-        return key == "bed_temperature" or key.startswith("chamber_")
-
-    def _smooth_temperature(self, raw_value: float) -> float:
-        if self._filtered_value is None:
-            self._filtered_value = raw_value
-            return raw_value
-
-        delta = raw_value - self._filtered_value
-        if abs(delta) <= self._TEMPERATURE_HYSTERESIS:
-            return self._filtered_value
-
-        self._filtered_value += delta * self._TEMPERATURE_SMOOTHING_ALPHA
-        self._filtered_value = round(self._filtered_value, 2)
-        return self._filtered_value
 
 
 class SnapmakerExtruderSensor(SnapmakerSensor):
